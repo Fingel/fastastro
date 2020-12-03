@@ -5,6 +5,7 @@ from sqlalchemy.sql.schema import ForeignKey
 
 from ..database import Base
 from ..config import settings
+from ..utils import wkt_point
 
 
 class Source(Base):
@@ -20,7 +21,7 @@ class Source(Base):
         """
         ra = kwargs.pop('ra')
         dec = kwargs.pop('dec')
-        kwargs['location'] = f'srid={settings.srid};POINT({ra} {dec})'
+        kwargs['location'] = wkt_point(ra, dec, settings.srid)
 
         return super().__init__(*args, **kwargs)
 

@@ -1,15 +1,28 @@
 from typing import List
 from sqlalchemy.orm import Session
 
-from . import models, schemas
+from . import models, schemas, filters
+from ..utils import ListQueryParams, degrees_to_meters, wkt_point
+from ..config import settings
 
 
 def get_source(db: Session, source_id: int) -> models.Source:
     return db.query(models.Source).filter(models.Source.id == source_id).first()
 
 
-def get_sources(db: Session, skip: int = 0, limit: int = 0) -> List[models.Source]:
-    return db.query(models.Source).offset(skip).limit(limit).all()
+def get_sources(db: Session, list_params: ListQueryParams, source_filter: filters.SourceFilter) -> List[models.Source]:
+    query = db.query(models.Source)
+
+    if source_filter.name_contains:
+        query = query.filter(models.Source.name.contains(source_filter.name_contains))
+
+    if source_filter.cone:
+        ra, dec, radius = source_filter.cone
+        query = query.filter(
+            models.Source.location.ST_DWithin(wkt_point(ra, dec, settings.srid), degrees_to_meters(radius))
+        )
+
+    return query.order_by(list_params.order_by).offset(list_params.skip).limit(list_params.limit).all()
 
 
 def create_source(db: Session, source: schemas.CreateSource) -> models.Source:

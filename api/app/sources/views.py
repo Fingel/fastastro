@@ -2,8 +2,9 @@ from fastapi import APIRouter, Depends
 from typing import List
 from sqlalchemy.orm import Session
 
-from . import crud, schemas
+from . import crud, schemas, filters
 from ..database import get_db
+from ..utils import ListQueryParams
 
 router = APIRouter(
     prefix="/sources",
@@ -12,8 +13,12 @@ router = APIRouter(
 
 
 @router.get('/', response_model=List[schemas.ListSource])
-def get_sources(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    return crud.get_sources(db, skip=skip, limit=limit)
+def get_sources(
+        list_params: ListQueryParams = Depends(),
+        source_filter: filters.SourceFilter = Depends(),
+        db: Session = Depends(get_db)
+        ):
+    return crud.get_sources(db, list_params, source_filter)
 
 
 @router.post('/', response_model=schemas.Source)

@@ -1,18 +1,15 @@
-from typing import Optional
+from fastapi import Query
+from pydantic import BaseModel
 
 
-class SourceFilter:
-    def __init__(
-        self,
-        name_contains: Optional[str] = None,
-        cone_ra: Optional[float] = None,
-        cone_dec: Optional[float] = None,
-        cone_radius: Optional[float] = None,
-    ):
-        self.name_contains = name_contains
-        self.cone_ra = cone_ra
-        self.cone_dec = cone_dec
-        self.cone_radius = cone_radius
+class SourceFilter(BaseModel):
+    """
+    Query params specific to listing Sources
+    """
+    name_contains: str = Query(None)
+    cone_ra: float = Query(None, ge=-360, le=360)
+    cone_dec: float = Query(None, ge=-90, le=90)
+    cone_radius: float = Query(None)
 
     @property
     def cone(self) -> tuple:

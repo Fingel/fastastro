@@ -1,17 +1,18 @@
-from typing import Optional
+from fastapi import Query
+from dataclasses import dataclass
+from pydantic import BaseModel
 import math
 
 EARTH_RADIUS_METERS = 6371008.77141506
 
 
-class ListQueryParams:
+class ListQueryParams(BaseModel):
     """
     Query parameters common to list operations
     """
-    def __init__(self, skip: int = 0, limit: int = 100, order_by: Optional[str] = None):
-        self.skip = skip
-        self.limit = limit
-        self.order_by = order_by
+    skip: int = Query(0)
+    limit: int = Query(100, ge=1)
+    order_by: str = Query(None)
 
 
 def degrees_to_meters(degrees: float) -> float:

@@ -11,7 +11,10 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(BASE_DIR)
 
 from app.config import settings  # noqa
+
+# This file MUST import all models in order for alembic to detect them!
 from app.sources import models  # noqa
+from app.auth import models  # noqa
 
 # db_string = os.environ.get('DB_STRING', 'postgresql://postgres:postgres@127.0.0.1:5432/fastastro')
 db_string = settings.db_string

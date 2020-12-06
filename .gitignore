@@ -132,3 +132,4 @@ dmypy.json
 # Other stuff
 .DS_Store
 .vscode
+.envrc

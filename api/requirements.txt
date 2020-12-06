@@ -4,3 +4,8 @@ sqlalchemy==1.4.0b1
 psycopg2-binary==2.8.6
 GeoAlchemy2==0.8.4
 Shapely==1.7.1
+passlib==1.7.4
+argon2-cffi==20.1.0
+python-jose[cryptography]==3.2.0
+python-multipart==0.0.5
+pydantic[email]

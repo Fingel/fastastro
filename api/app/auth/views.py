@@ -35,6 +35,6 @@ def read_users_me(current_user: models.User = Depends(get_current_active_user)):
     return current_user
 
 
-@router.post('/register', response_model=schemas.UserDetail)
+@router.post('/register', response_model=schemas.UserDetail, status_code=status.HTTP_201_CREATED)
 def register(user_create: schemas.UserCreate, db: Session = Depends(get_db)):
     return crud.create_user(db, user_create)

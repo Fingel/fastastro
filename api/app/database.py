@@ -1,9 +1,7 @@
-from datetime import date
 from sqlalchemy import create_engine, Column, Integer
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.types import DateTime
-from sqlalchemy.sql import func
 from datetime import datetime
 
 from .config import settings

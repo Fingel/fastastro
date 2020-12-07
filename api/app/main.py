@@ -4,7 +4,8 @@ from fastapi import FastAPI, Depends
 from .config import settings
 from .sources.views import router as sources_router
 from .auth.views import router as auth_router
-from .auth.security import oauth2_scheme
+from .auth.security import get_current_active_user
+from .auth.models import User
 
 
 app = FastAPI()
@@ -18,5 +19,5 @@ async def root():
 
 
 @app.get('/secure/')
-async def secure(token: str = Depends(oauth2_scheme)):
-    return {'token': token}
+async def secure(user: User = Depends(get_current_active_user)):
+    return {'user': user.email}

@@ -1,5 +1,4 @@
 from pydantic import BaseModel, EmailStr, constr
-from typing import Optional
 
 
 class TokenData(BaseModel):
@@ -22,8 +21,8 @@ class BaseUser(BaseModel):
 
 class UserDetail(BaseUser):
     id: int
-    is_active: Optional[bool] = True
-    is_superuser: Optional[bool] = False
+    is_active: bool
+    is_superuser: bool
 
 
 class UserCreate(BaseUser):

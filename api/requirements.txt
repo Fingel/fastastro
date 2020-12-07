@@ -9,3 +9,4 @@ argon2-cffi==20.1.0
 python-jose[cryptography]==3.2.0
 python-multipart==0.0.5
 pydantic[email]
+requests==2.25.0

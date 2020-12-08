@@ -5,7 +5,7 @@ from sqlalchemy.sql.schema import ForeignKey
 
 from ..database import Base
 from ..config import settings
-from ..utils import wkt_point
+from ..util.calc import wkt_point
 
 
 class Source(Base):

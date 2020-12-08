@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from . import crud, schemas, filters
 from ..database import get_db
-from ..utils import ListQueryParams
+from ..util.web import ListQueryParams
 
 router = APIRouter(
     prefix="/sources",

@@ -2,7 +2,8 @@ from typing import List
 from sqlalchemy.orm import Session
 
 from . import models, schemas, filters
-from ..utils import ListQueryParams, degrees_to_meters, wkt_point
+from ..util.web import ListQueryParams
+from ..util.calc import degrees_to_meters, wkt_point
 from ..config import settings
 
 

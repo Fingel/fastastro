@@ -1,13 +1,17 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from datetime import timedelta
 import logging
+import os
 
 from ..database import get_db
 from ..config import settings
 from . import schemas, models, crud
-from .security import authenticate_user, create_access_token, get_current_active_user
+from .security import authenticate_user, confirm_password_reset, create_access_token, get_current_active_user
+from .security import get_email_confirmation_link, password_reset_token, get_user_by_username, confirm_email_address
+from ..util.mail import send_mail
+from ..util.exceptions import UniquValueException
 
 logger = logging.getLogger('app')
 
@@ -39,6 +43,71 @@ def read_users_me(current_user: models.User = Depends(get_current_active_user)):
 
 
 @router.post('/register', response_model=schemas.UserDetail, status_code=status.HTTP_201_CREATED)
-def register(user_create: schemas.UserCreate, db: Session = Depends(get_db)):
+def register(user_create: schemas.UserCreate, tasks: BackgroundTasks, db: Session = Depends(get_db)):
     logger.info('Got request to register new user.')
-    return crud.create_user(db, user_create)
+
+    try:
+        user = crud.create_user(db, user_create)
+    except UniquValueException as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f'Error: {exc}'
+        )
+
+    confirm_link = get_email_confirmation_link(router.url_path_for('confirm_email'), user.email)
+
+    with open(os.path.join(os.path.dirname(__file__), 'templates/verifyemail.txt')) as f:
+        body = f.read().format(
+            first_name=user.first_name,
+            last_name=user.last_name,
+            email=user.email,
+            verify_link=confirm_link
+        )
+
+    tasks.add_task(
+        send_mail,
+        subject='Verify your email for Fast Astro.',
+        body=body,
+        to=user.email
+    )
+    return user
+
+
+@router.get('/confirm_email')
+def confirm_email(token: str, db: Session = Depends(get_db)):
+    user = confirm_email_address(db, token)
+    if user.email_verified:
+        return {'detail': 'ok'}
+    else:
+        return {'error': 'Address not verified'}
+
+
+@router.post('/reset_password')
+def request_password_reset(reset: schemas.PasswordResetRequest, tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    user = get_user_by_username(db, reset.email)
+    if not user or not user.email_verified:
+        return {'detail': 'ok'}
+
+    reset_token = password_reset_token(user.email)
+    reset_link = 'https://todo.local?token=' + reset_token
+    with open(os.path.join(os.path.dirname(__file__), 'templates/resetpassword.txt')) as f:
+        body = f.read().format(
+            first_name=user.first_name,
+            last_name=user.last_name,
+            email=user.email,
+            reset_link=reset_link
+        )
+    tasks.add_task(
+        send_mail,
+        subject='Fast Astro password reset.',
+        body=body,
+        to=user.email
+    )
+
+    return {'detail': 'ok'}
+
+
+@router.post('/password_reset_confirm')
+def password_reset_confirm(reset: schemas.PasswordResetConfirm, db: Session = Depends(get_db)):
+    confirm_password_reset(db, reset.token, reset.password)
+    return {'detail': 'ok'}

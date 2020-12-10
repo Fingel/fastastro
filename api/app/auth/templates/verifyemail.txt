@@ -1,0 +1,9 @@
+Hello {first_name} {last_name},
+
+Please confirm you are the owner of {email} by visiting the following link:
+
+{verify_link}
+
+Thank you,
+Fast Astro
+

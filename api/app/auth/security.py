@@ -75,3 +75,63 @@ def get_current_active_user(current_user: models.User = Depends(get_current_user
     if not current_user.is_active:
         raise HTTPException(status_code=400, detail='Inactive user')
     return current_user
+
+
+def get_email_confirmation_link(route: str, email: str) -> str:
+    confirm_token = create_access_token({'sub': email}, expires_delta=timedelta(hours=2))
+    return'{route}?token={token}'.format(
+        route=route,
+        token=confirm_token
+    )
+
+
+def confirm_email_address(db: Session, token: str) -> models.User:
+    token_exception = HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail='Could not validate email, please try again by requesting the email be re-sent.'
+    )
+    try:
+        payload = jwt.decode(token, settings.secret_key, algorithms=[JWT_ALGORITHM])
+    except JWTError:
+        raise token_exception
+    email: str = payload.get('sub', '')
+    if not email:
+        raise token_exception
+
+    user = get_user_by_username(db, username=email)
+    if not user:
+        raise token_exception
+
+    user.email_verified = True
+    db.commit()
+    db.refresh(user)
+
+    return user
+
+
+def password_reset_token(email: str) -> str:
+    return create_access_token({'sub': email}, expires_delta=timedelta(hours=2))
+
+
+def confirm_password_reset(db: Session, token: str, password: str) -> models.User:
+    token_exception = HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail='Could not validate request, please try again by resetting your password again.'
+    )
+    try:
+        payload = jwt.decode(token, settings.secret_key, algorithms=[JWT_ALGORITHM])
+    except JWTError:
+        raise token_exception
+    email: str = payload.get('sub', '')
+    if not email:
+        raise token_exception
+
+    user = get_user_by_username(db, username=email)
+    if not user or not user.email_verified:
+        raise token_exception
+
+    user.hashed_password = hash_password(password)
+    db.commit()
+    db.refresh(user)
+
+    return user

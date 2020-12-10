@@ -23,7 +23,17 @@ class UserDetail(BaseUser):
     id: int
     is_active: bool
     is_superuser: bool
+    email_verified: bool
 
 
 class UserCreate(BaseUser):
     password: constr(min_length=8)
+
+
+class PasswordResetRequest(BaseModel):
+    email: EmailStr
+
+
+class PasswordResetConfirm(BaseModel):
+    token: str
+    password: str

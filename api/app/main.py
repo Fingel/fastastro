@@ -1,13 +1,15 @@
 from fastapi import FastAPI, Depends
+from logging.config import dictConfig
 
-
-from .config import settings
+from .config import settings, log_config
 from .sources.views import router as sources_router
 from .auth.views import router as auth_router
 from .auth.security import get_current_active_user
 from .auth.models import User
 from .util.mail import send_mail
 
+
+dictConfig(log_config)
 
 app = FastAPI()
 app.include_router(sources_router)

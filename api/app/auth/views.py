@@ -2,11 +2,14 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from datetime import timedelta
+import logging
 
 from ..database import get_db
 from ..config import settings
 from . import schemas, models, crud
 from .security import authenticate_user, create_access_token, get_current_active_user
+
+logger = logging.getLogger('app')
 
 router = APIRouter(
     prefix="/auth",
@@ -37,4 +40,5 @@ def read_users_me(current_user: models.User = Depends(get_current_active_user)):
 
 @router.post('/register', response_model=schemas.UserDetail, status_code=status.HTTP_201_CREATED)
 def register(user_create: schemas.UserCreate, db: Session = Depends(get_db)):
+    logger.info('Got request to register new user.')
     return crud.create_user(db, user_create)

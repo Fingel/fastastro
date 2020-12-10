@@ -55,6 +55,6 @@ jobs:
     - name: Test with pytest
       env:
         EMAIL_BACKEND: TestEmailBackend
-        PYTHONPATH: $GITHUB_WORKSPACE/api/
+        PYTHONPATH: ./api/
       run: |
         pytest

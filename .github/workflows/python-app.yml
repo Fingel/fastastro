@@ -13,7 +13,25 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-
+    
+    services:
+          # Label used to access the service container
+          postgres:
+            # Docker Hub image
+            image: postgis/postgis
+            # Provide the password for postgres
+            env:
+              POSTGRES_PASSWORD: postgres
+              POSTGRES_DATABASE: fastastro_test 
+            # Set health checks to wait until postgres has started
+            options: >-
+              --health-cmd pg_isready
+              --health-interval 10s
+              --health-timeout 5s
+              --health-retries 5
+            ports:
+              # Maps tcp port 5432 on service container to the host
+              - 5432:5432
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python 3.9
@@ -22,7 +40,7 @@ jobs:
         python-version: 3.9
     - name: Install Linux Dependencies
       run: |
-        sudo apt install libgeos-dev 
+        sudo apt-get install libgeos-dev 
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
@@ -37,6 +55,6 @@ jobs:
     - name: Test with pytest
       env:
         EMAIL_BACKEND: TestEmailBackend
-        PYTHONPATH: "$GITHUB_WORKSPACE/api"
+        PYTHONPATH: $GITHUB_WORKSPACE/api/
       run: |
         pytest

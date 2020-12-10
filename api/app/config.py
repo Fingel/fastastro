@@ -8,5 +8,11 @@ class Settings(BaseSettings):
     secret_key: str
     access_token_expire_minutes: int = 30
 
+    # Mail Settings
+    email_backend: str = 'ConsoleEmailBackend'
+    smtp_host: str = '127.0.0.1'
+    smtp_port: int = 8025
+    from_address: str = 'root@localhost'
+
 
 settings = Settings()

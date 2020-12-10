@@ -2,7 +2,7 @@ serve:
 	uvicorn app.main:app --reload
 
 test:
-	PYTHONPATH=. pytest -s
+	PYTHONPATH=. EMAIL_BACKEND=TestEmailBackend pytest -s
 
-smtp:
+smtpd:
 	aiosmtpd -n

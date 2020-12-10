@@ -56,5 +56,6 @@ jobs:
       env:
         EMAIL_BACKEND: TestEmailBackend
         PYTHONPATH: ./api/
+        SECRET_KEY: 'notactuallysecret'
       run: |
         pytest

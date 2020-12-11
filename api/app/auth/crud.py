@@ -20,3 +20,10 @@ def create_user(db: Session, create_user: schemas.UserCreate) -> models.User:
     db.commit()
     db.refresh(db_user)
     return db_user
+
+
+def update_user(db: Session, update_user: schemas.UserUpdate, user_id: int) -> models.User:
+    update_data = update_user.dict(exclude_unset=True)
+    db.query(models.User).filter_by(id=user_id).update(update_data)
+    db.commit()
+    return db.query(models.User).get(user_id)

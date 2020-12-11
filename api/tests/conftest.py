@@ -54,7 +54,8 @@ def current_user(db):
         'last_name': 'Test',
         'hashed_password': '',
         'is_active': True,
-        'is_superuser': False
+        'is_superuser': False,
+        'email_verified': True
     }
 
     db_user = User(**test_user)

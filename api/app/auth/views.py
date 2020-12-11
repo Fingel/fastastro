@@ -8,8 +8,9 @@ import os
 from ..database import get_db
 from ..config import settings
 from . import schemas, models, crud
-from .security import authenticate_user, confirm_password_reset, create_access_token, get_current_active_user
+from .security import authenticate_user, confirm_password_reset, create_access_token, get_current_active_user, verify_password
 from .security import get_email_confirmation_link, password_reset_token, get_user_by_username, confirm_email_address
+from .security import hash_password
 from ..util.mail import send_mail
 from ..util.exceptions import UniquValueException
 
@@ -37,9 +38,36 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     return {'access_token': access_token, 'token_type': 'Bearer'}
 
 
-@router.get("/users/me/", response_model=schemas.UserDetail)
+@router.get('/users/me', response_model=schemas.UserDetail)
 def read_users_me(current_user: models.User = Depends(get_current_active_user)):
     return current_user
+
+
+@router.patch('/users/me', response_model=schemas.UserDetail)
+def update_user_me(
+            update_user: schemas.UserUpdate,
+            current_user: models.User = Depends(get_current_active_user),
+            db: Session = Depends(get_db)
+        ):
+    user = crud.update_user(db, update_user, current_user.id)
+    return user
+
+
+@router.post('/users/me/update_password')
+def update_password_me(
+            password_update: schemas.PasswordUpdate,
+            current_user: models.User = Depends(get_current_active_user),
+            db: Session = Depends(get_db)
+        ):
+    if not verify_password(password_update.current_password, current_user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail='Incorrect password',
+        )
+    else:
+        current_user.hashed_password = hash_password(password_update.password)
+        db.commit()
+        return {'detail': 'ok'}
 
 
 @router.post('/register', response_model=schemas.UserDetail, status_code=status.HTTP_201_CREATED)

@@ -4,7 +4,7 @@ from sqlalchemy import exists
 
 from app.main import app
 from app.auth.models import User
-from app.auth.security import hash_password, get_email_confirmation_link, password_reset_token
+from app.auth.security import hash_password, get_email_confirmation_link, password_reset_token, verify_password
 from app.util.mail import record_messages
 
 client = TestClient(app)
@@ -62,6 +62,29 @@ class TestAuth:
     def test_get_me(self, current_user):
         response = client.get(app.url_path_for('read_users_me'))
         assert response.json()['email'] == current_user.email
+
+    def test_update_me(self, db, current_user):
+        data = {
+            'first_name': 'NewName'
+        }
+        response = client.patch(app.url_path_for('update_user_me'), json=data)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()['first_name'] == data['first_name']
+        db.refresh(current_user)
+        assert current_user.first_name == data['first_name']
+
+    def test_update_password(self, db, current_user):
+        current_user.hashed_password = hash_password('oldpassword')
+        db.commit()
+        data = {
+            'current_password': 'oldpassword',
+            'password': 'makeitnew'
+        }
+        response = client.post(app.url_path_for('update_password_me'), json=data)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()['detail'] == 'ok'
+        db.refresh(current_user)
+        assert verify_password(data['password'], current_user.hashed_password)
 
     def test_confirm_email(self, db):
         unverified_user = User(
